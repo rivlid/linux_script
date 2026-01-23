@@ -15,6 +15,7 @@ BRIDGE="vmbr0"
 OS_CHOICE="debian12"
 CLOUDINIT_USER="root"
 CLOUDINIT_PASS="rootpass"
+TIMEZONE="Europe/Moscow"
 
 # --- Проверки ---
 if [ "$(id -u)" -ne 0 ]; then
@@ -79,6 +80,7 @@ virt-customize -a "$IMAGE_NAME" \
     --run-command 'echo -n > /etc/machine-id' \
     --run-command 'ln -fs /etc/machine-id /var/lib/dbus/machine-id' \
     --run-command 'rm -rf /var/lib/cloud/*' \
+    --timezone "$TIMEZONE" \
     --update \
     --run-command "apt clean && rm -rf /var/lib/apt/lists/*" \
     --run-command "echo 'UUID=$SWAP_UUID none swap sw 0 0' >> /etc/fstab"
