@@ -1,6 +1,6 @@
 root@f06-hv00:~# cat cloudinit-f06-db00.sh
 #!/bin/bash
-#r.kalsin
+#rivlid
 
 set -e
 

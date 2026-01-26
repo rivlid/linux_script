@@ -1,5 +1,5 @@
 #!/bin/bash
-#r.kalsin
+#rivlid
 
 set -e
 
