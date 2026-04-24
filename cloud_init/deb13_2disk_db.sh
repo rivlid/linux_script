@@ -6,7 +6,7 @@ set -e
 # --- Настройки ---
 VM_ID=100004
 VM_NAME="deb13-clin-vm01"
-MEMORY=4906
+MEMORY=4096
 CORES=4
 SWAP_SIZE="8G"
 DB_SIZE="30G"
@@ -42,6 +42,14 @@ fi
 # Создаем временную директорию
 mkdir -p "$TEMP_DIR"
 cd "$TEMP_DIR"
+
+# --- Очистка при ошибке ---
+cleanup() {
+    cd "$START_DIR"
+    rm -rf "$TEMP_DIR"
+    qm destroy "$VM_ID" --purge 2>/dev/null || true
+}
+trap cleanup ERR
 
 # --- Выбор ОС ---
 case "$OS_CHOICE" in
@@ -91,19 +99,16 @@ echo "Done"
 
 # --- Получение UUID ---
 echo "Получение UUID..."
-SWAP_UUID=$(guestfish --ro -a swapdisk.qcow2 <<EOF | grep '^UUID:' | awk '{print $2}'
-run
-blkid /dev/sda
-EOF
-)
+SWAP_UUID=$(guestfish --ro -a swapdisk.qcow2 -- run : get-uuid /dev/sda)
 echo "Swap UUID: $SWAP_UUID"
 
-DB_UUID=$(guestfish --ro -a fbdatabase.qcow2 <<EOF | grep '^UUID:' | awk '{print $2}'
-run
-blkid /dev/sda1
-EOF
-)
+DB_UUID=$(guestfish --ro -a fbdatabase.qcow2 -- run : vfs-uuid /dev/sda1)
 echo "DB UUID: $DB_UUID"
+
+if [ -z "$SWAP_UUID" ] || [ -z "$DB_UUID" ]; then
+    echo "Ошибка: не удалось получить UUID дисков!" >&2
+    exit 1
+fi
 
 # --- Настройка основного образа ---
 echo "[3/10] Настройка основного диска..."
